@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reaction Time Tester</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body id="mainBg" class="bg-gray-900 min-h-screen flex items-center justify-center px-2 transition-colors duration-300 cursor-pointer select-none">
+  <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-10 w-full max-w-md flex flex-col items-center justify-center min-h-[80vh] z-10 relative">
+    <h1 class="text-3xl sm:text-4xl font-extrabold mb-4 text-gray-800 text-center">Reaction Time Tester</h1>
+    <p class="mb-6 text-gray-600 text-center text-base sm:text-lg">Click anywhere when the screen turns green.</p>
+    <div id="result" class="mb-4 text-2xl sm:text-3xl font-bold text-gray-700 text-center">Your reaction time: ___ ms</div>
+    <div id="leaderboard" class="mb-4 w-full"></div>
+    <button id="startBtn" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full mb-2">Start Test</button>
+    <button id="retryBtn" class="bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-yellow-400 w-full mt-2 hidden">Retry</button>
+    <button id="shareBtn" class="bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-teal-400 w-full mt-2 hidden">Share Your Score</button>
+    <a id="whatsappShare" class="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-green-400 w-full mt-2 hidden text-center" target="_blank" rel="noopener noreferrer">Share on WhatsApp</a>
+    <audio id="beepSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
+  </div>
+  <script>
+    const mainBg = document.getElementById('mainBg');
+    const result = document.getElementById('result');
+    const startBtn = document.getElementById('startBtn');
+    const retryBtn = document.getElementById('retryBtn');
+    const leaderboardDiv = document.getElementById('leaderboard');
+    const shareBtn = document.getElementById('shareBtn');
+    const whatsappShare = document.getElementById('whatsappShare');
+    let lastScore = null;
+    const siteUrl = 'https://your-site.com';
+
+    let waiting = false;
+    let startTime = 0;
+    let timeoutId = null;
+    let bestTime = localStorage.getItem('bestReactionTime');
+    let leaderboard = JSON.parse(localStorage.getItem('reactionLeaderboard') || '[]');
+    let beepUnlocked = false;
+
+    function showBestTime() {
+      if (bestTime) {
+        result.innerHTML += `<br><span class="text-green-600">Best Time: ${bestTime} ms</span>`;
+      }
+    }
+
+    function renderLeaderboard() {
+      if (!leaderboard.length) {
+        leaderboardDiv.innerHTML = '';
+        return;
+      }
+      let html = '<div class="bg-gray-100 rounded-lg p-4"><h2 class="font-semibold mb-2 text-gray-800">Top 5 Fastest Users</h2><ol class="list-decimal ml-5">';
+      leaderboard.slice(0, 5).forEach((entry) => {
+        html += `<li class="mb-1"><span class="font-bold">${entry.name}</span>: <span class="text-blue-700">${entry.time} ms</span></li>`;
+      });
+      html += '</ol></div>';
+      leaderboardDiv.innerHTML = html;
+    }
+
+    function setBg(color) {
+      mainBg.classList.remove('bg-gray-900', 'bg-red-500', 'bg-green-500');
+      mainBg.classList.add(color);
+    }
+
+    function resetBg() {
+      setBg('bg-gray-900');
+    }
+
+    function hideShareButtons() {
+      shareBtn.classList.add('hidden');
+      whatsappShare.classList.add('hidden');
+    }
+
+    function resetTest() {
+      resetBg();
+      result.textContent = "Your reaction time: ___ ms";
+      showBestTime();
+      startBtn.disabled = false;
+      retryBtn.classList.add('hidden');
+      hideShareButtons();
+    }
+
+    function startTest() {
+      resetBg();
+      result.textContent = "Wait for green...";
+      retryBtn.classList.add('hidden');
+      startBtn.disabled = true;
+      setBg('bg-red-500');
+      waiting = true;
+      hideShareButtons();
+      // Random delay between 2 and 5 seconds
+      const delay = Math.random() * 3000 + 2000;
+      const beep = document.getElementById('beepSound');
+      // If delay is less than 150ms, just play beep and green together
+      if (delay < 150) {
+        timeoutId = setTimeout(() => {
+          beep.currentTime = 0;
+          beep.play();
+          setBg('bg-green-500');
+          startTime = Date.now();
+          waiting = false;
+        }, delay);
+      } else {
+        timeoutId = setTimeout(() => {
+          beep.currentTime = 0;
+          beep.play();
+          setTimeout(() => {
+            setBg('bg-green-500');
+            startTime = Date.now();
+            waiting = false;
+          }, 100);
+        }, delay - 100);
+      }
+    }
+
+    function askNameAndSave(reactionTime) {
+      let name = prompt("Enter your name for the leaderboard:", "");
+      if (!name) name = "Anonymous";
+      leaderboard.push({ name, time: reactionTime });
+      leaderboard.sort((a, b) => a.time - b.time);
+      leaderboard = leaderboard.slice(0, 5); // Keep only top 5
+      localStorage.setItem('reactionLeaderboard', JSON.stringify(leaderboard));
+      renderLeaderboard();
+    }
+
+    function showShareButtons(score) {
+      lastScore = score;
+      const tweet = encodeURIComponent(`I just scored ${score}ms on Reaction Time Tester! Can you beat me? ${siteUrl}`);
+      shareBtn.onclick = () => {
+        window.open(`https://twitter.com/intent/tweet?text=${tweet}`, '_blank');
+      };
+      shareBtn.classList.remove('hidden');
+      // WhatsApp (show only on mobile)
+      if (/Mobi|Android/i.test(navigator.userAgent)) {
+        whatsappShare.href = `https://wa.me/?text=${tweet}`;
+        whatsappShare.classList.remove('hidden');
+      } else {
+        whatsappShare.classList.add('hidden');
+      }
+    }
+
+    mainBg.addEventListener('click', (e) => {
+      // Prevent clicks on buttons/inputs inside the main box
+      if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input') || e.target.closest('textarea')) return;
+      handleReaction();
+    });
+
+    // Add spacebar support
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.key === ' ') {
+        // Prevent scrolling
+        e.preventDefault();
+        handleReaction();
+      }
+    });
+
+    function handleReaction() {
+      // If test hasn't started
+      if (startBtn.disabled === false) return;
+      // Clicked too soon
+      if (waiting) {
+        clearTimeout(timeoutId);
+        result.innerHTML = '<span class="text-red-600 font-semibold">Too Soon! Try again.</span>';
+        resetBg();
+        startBtn.disabled = true;
+        retryBtn.classList.remove('hidden');
+        hideShareButtons();
+        return;
+      }
+      // If green, measure reaction time
+      if (mainBg.classList.contains('bg-green-500')) {
+        const reactionTime = Date.now() - startTime;
+        result.textContent = `Your reaction time: ${reactionTime} ms`;
+        // Save best time
+        if (!bestTime || reactionTime < bestTime) {
+          bestTime = reactionTime;
+          localStorage.setItem('bestReactionTime', bestTime);
+          result.innerHTML += `<br><span class="text-green-600">Best Time: ${bestTime} ms</span>`;
+        } else {
+          showBestTime();
+        }
+        askNameAndSave(reactionTime);
+        resetBg();
+        startBtn.disabled = true;
+        retryBtn.classList.remove('hidden');
+        showShareButtons(reactionTime);
+      }
+    }
+
+    startBtn.addEventListener('click', (e) => {
+      // Unlock beep on first interaction
+      if (!beepUnlocked) {
+        const beep = document.getElementById('beepSound');
+        beep.volume = 1;
+        beep.currentTime = 0;
+        beep.play().then(() => beep.pause()).catch(() => {});
+        beepUnlocked = true;
+      }
+      startTest();
+    });
+    retryBtn.addEventListener('click', resetTest);
+
+    // Show best time and leaderboard on load
+    showBestTime();
+    renderLeaderboard();
+  </script>
+</body>
+</html> 
