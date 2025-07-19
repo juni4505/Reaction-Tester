@@ -7,7 +7,6 @@ A simple, interactive web app to measure your reaction speed. Click as soon as t
 - **Leaderboard:** Stores the top 5 fastest users (locally in your browser).
 - **Best Time Tracking:** Your personal best is highlighted.
 - **Share Score:** Share your score on Twitter or WhatsApp (mobile only).
-- **Sound Cue:** Optional beep sound when the test starts.
 - **Mobile Friendly:** Responsive design using Tailwind CSS.
 - **No Backend Required:** All data is stored in your browser (localStorage).
 
@@ -31,9 +30,6 @@ A simple, interactive web app to measure your reaction speed. Click as soon as t
 - **HTML, CSS (Tailwind), JavaScript**
 - No frameworks or build tools required.
 
-**Customization**
-- To change the site URL for sharing, edit the `siteUrl` variable in the script section of `index.html`.
-
 **Local Leaderboard**
 - The leaderboard and your best time are stored in your browser's localStorage. Clearing browser data will reset them.
 
@@ -42,7 +38,6 @@ Just open `index.html` in your browser. No installation or server required.
 
 **Credits**
 - UI powered by [Tailwind CSS](https://tailwindcss.com/)
-- Beep sound from [SoundJay](https://www.soundjay.com/)
 
 ---
 Enjoy testing your reflexes and challenge your friends! 
