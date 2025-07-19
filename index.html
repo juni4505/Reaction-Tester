@@ -6,18 +6,21 @@
   <title>Reaction Time Tester</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body id="mainBg" class="bg-gray-900 min-h-screen flex items-center justify-center px-2 transition-colors duration-300 cursor-pointer select-none">
-  <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-10 w-full max-w-md flex flex-col items-center justify-center min-h-[80vh] z-10 relative">
-    <h1 class="text-3xl sm:text-4xl font-extrabold mb-4 text-gray-800 text-center">Reaction Time Tester</h1>
-    <p class="mb-6 text-gray-600 text-center text-base sm:text-lg">Click anywhere when the screen turns green.</p>
-    <div id="result" class="mb-4 text-2xl sm:text-3xl font-bold text-gray-700 text-center">Your reaction time: ___ ms</div>
-    <div id="leaderboard" class="mb-4 w-full"></div>
-    <button id="startBtn" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full mb-2">Start Test</button>
-    <button id="retryBtn" class="bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-yellow-400 w-full mt-2 hidden">Retry</button>
-    <button id="shareBtn" class="bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-teal-400 w-full mt-2 hidden">Share Your Score</button>
-    <a id="whatsappShare" class="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-green-400 w-full mt-2 hidden text-center" target="_blank" rel="noopener noreferrer">Share on WhatsApp</a>
-    <audio id="beepSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
-  </div>
+<body id="mainBg" class="bg-gray-900 min-h-screen flex flex-col px-2 transition-colors duration-300 cursor-pointer select-none">
+  <nav class="fixed top-0 left-0 right-0 w-full bg-white bg-opacity-90 shadow-md flex flex-row items-center justify-between px-4 py-2 z-10">
+    <div class="flex flex-row items-center w-full">
+      <h1 class="text-xl sm:text-2xl font-extrabold text-gray-800 whitespace-nowrap mr-8">Reaction Time Tester</h1>
+      <div id="leaderboard" class="flex flex-row items-center space-x-4"></div>
+    </div>
+    <button id="startBtn" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-2 px-6 rounded-xl shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 ml-4">Start Test</button>
+  </nav>
+  <main class="flex flex-col items-center justify-start w-full mt-20">
+    <p class="mb-6 text-gray-200 text-center text-base sm:text-lg max-w-xl">Click anywhere when the screen turns green.</p>
+    <div id="result" class="mb-4 text-2xl sm:text-3xl font-bold text-gray-100 text-center">Your reaction time: ___ ms</div>
+    <button id="retryBtn" class="bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-yellow-400 w-full max-w-xs mt-2 hidden">Retry</button>
+    <button id="shareBtn" class="bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-teal-400 w-full max-w-xs mt-2 hidden">Share Your Score</button>
+    <a id="whatsappShare" class="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-green-400 w-full max-w-xs mt-2 hidden text-center" target="_blank" rel="noopener noreferrer">Share on WhatsApp</a>
+  </main>
   <script>
     const mainBg = document.getElementById('mainBg');
     const result = document.getElementById('result');
@@ -34,7 +37,6 @@
     let timeoutId = null;
     let bestTime = localStorage.getItem('bestReactionTime');
     let leaderboard = JSON.parse(localStorage.getItem('reactionLeaderboard') || '[]');
-    let beepUnlocked = false;
 
     function showBestTime() {
       if (bestTime) {
@@ -43,15 +45,15 @@
     }
 
     function renderLeaderboard() {
-      if (!leaderboard.length) {
-        leaderboardDiv.innerHTML = '';
-        return;
+      let html = '<div class="flex flex-row items-center space-x-3">';
+      for (let i = 0; i < 5; i++) {
+        if (leaderboard[i]) {
+          html += `<span class="flex flex-row items-center text-xs bg-gray-100 rounded px-2 py-1"><span class="font-bold mr-1">${i+1}.</span> <span class="font-bold">${leaderboard[i].name}</span>: <span class="text-blue-700 ml-1">${leaderboard[i].time} ms</span></span>`;
+        } else {
+          html += `<span class="flex flex-row items-center text-xs text-gray-400 bg-gray-50 rounded px-2 py-1"><span class="font-bold mr-1">${i+1}.</span>---</span>`;
+        }
       }
-      let html = '<div class="bg-gray-100 rounded-lg p-4"><h2 class="font-semibold mb-2 text-gray-800">Top 5 Fastest Users</h2><ol class="list-decimal ml-5">';
-      leaderboard.slice(0, 5).forEach((entry) => {
-        html += `<li class="mb-1"><span class="font-bold">${entry.name}</span>: <span class="text-blue-700">${entry.time} ms</span></li>`;
-      });
-      html += '</ol></div>';
+      html += '</div>';
       leaderboardDiv.innerHTML = html;
     }
 
@@ -88,27 +90,11 @@
       hideShareButtons();
       // Random delay between 2 and 5 seconds
       const delay = Math.random() * 3000 + 2000;
-      const beep = document.getElementById('beepSound');
-      // If delay is less than 150ms, just play beep and green together
-      if (delay < 150) {
-        timeoutId = setTimeout(() => {
-          beep.currentTime = 0;
-          beep.play();
-          setBg('bg-green-500');
-          startTime = Date.now();
-          waiting = false;
-        }, delay);
-      } else {
-        timeoutId = setTimeout(() => {
-          beep.currentTime = 0;
-          beep.play();
-          setTimeout(() => {
-            setBg('bg-green-500');
-            startTime = Date.now();
-            waiting = false;
-          }, 100);
-        }, delay - 100);
-      }
+      timeoutId = setTimeout(() => {
+        setBg('bg-green-500');
+        startTime = Date.now();
+        waiting = false;
+      }, delay);
     }
 
     function askNameAndSave(reactionTime) {
@@ -186,14 +172,6 @@
     }
 
     startBtn.addEventListener('click', (e) => {
-      // Unlock beep on first interaction
-      if (!beepUnlocked) {
-        const beep = document.getElementById('beepSound');
-        beep.volume = 1;
-        beep.currentTime = 0;
-        beep.play().then(() => beep.pause()).catch(() => {});
-        beepUnlocked = true;
-      }
       startTest();
     });
     retryBtn.addEventListener('click', resetTest);
