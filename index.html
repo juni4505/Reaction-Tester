@@ -8,11 +8,13 @@
 </head>
 <body id="mainBg" class="bg-gray-900 min-h-screen flex flex-col px-2 transition-colors duration-300 cursor-pointer select-none">
   <nav class="fixed top-0 left-0 right-0 w-full bg-white bg-opacity-90 shadow-md flex flex-row items-center justify-between px-4 py-2 z-10">
-    <div class="flex flex-row items-center w-full">
-      <h1 class="text-xl sm:text-2xl font-extrabold text-gray-800 whitespace-nowrap mr-8">Reaction Time Tester</h1>
-      <div id="leaderboard" class="flex flex-row items-center space-x-4"></div>
+    <div class="flex flex-row items-center w-full justify-between">
+      <div class="flex flex-row items-center">
+        <h1 class="text-xl sm:text-2xl font-extrabold text-gray-800 whitespace-nowrap mr-8">Reaction Time Tester</h1>
+        <div id="leaderboard" class="flex flex-row items-center space-x-4"></div>
+      </div>
+      <button id="startBtn" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-2 px-6 rounded-xl shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 ml-4">Start Test</button>
     </div>
-    <button id="startBtn" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-2 px-6 rounded-xl shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 ml-4">Start Test</button>
   </nav>
   <main class="flex flex-col items-center justify-start w-full mt-20">
     <p class="mb-6 text-gray-200 text-center text-base sm:text-lg max-w-xl">Click anywhere when the screen turns green.</p>
